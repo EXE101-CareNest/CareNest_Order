@@ -17,14 +17,13 @@ namespace CareNest_Order.Application.Features.Commands.Delete
 
         public async Task HandleAsync(DeleteCommand command)
         {
-            // Lấy shop theo ID
-            Order? shop = await _unitOfWork.GetRepository<Order>().GetByIdAsync(command.Id)
+            // Lấy order theo ID
+            Order? order = await _unitOfWork.GetRepository<Order>().GetByIdAsync(command.Id)
                                               ?? throw new BadRequestException("Id: " + MessageConstant.NotFound);
 
-            _unitOfWork.GetRepository<Order>().Delete(shop);
+            _unitOfWork.GetRepository<Order>().Delete(order);
 
             await _unitOfWork.SaveAsync();
-
         }
     }
 }

@@ -27,6 +27,12 @@ namespace CareNest_Order.Infrastructure.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
+                    b.Property<string>("BankId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BankTransactionId")
+                        .HasColumnType("text");
+
                     b.Property<DateTimeOffset?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -41,6 +47,9 @@ namespace CareNest_Order.Infrastructure.Migrations
 
                     b.Property<string>("DeletedBy")
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsPaid")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Note")
                         .HasColumnType("text");

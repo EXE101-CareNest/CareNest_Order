@@ -35,5 +35,8 @@ namespace CareNest_Order.Application.Features.Commands.Update
         /// trạng thái: Pending / Confirmed / Checkin / Processing / Finished / Cancel
         /// </summary>
         public OrderStatus? Status { get; set; }
+        public string? BankId { get; set; }
+        public string? BankTransactionId { get; set; }
+        public bool IsPaid { get; set; }
     }
 }

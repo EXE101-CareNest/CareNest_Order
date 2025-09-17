@@ -1,4 +1,5 @@
 ﻿using CareNest_Order.Application.Exceptions;
+using CareNest_Order.Application.Exceptions.Validators;
 using CareNest_Order.Application.Interfaces.CQRS.Commands;
 using CareNest_Order.Application.Interfaces.UOW;
 using CareNest_Order.Domain.Commons.Constant;
@@ -19,24 +20,27 @@ namespace CareNest_Order.Application.Features.Commands.Update
         public async Task<Order> HandleAsync(UpdateCommand command)
         {
             // Gọi validator để kiểm tra dữ liệu
-            //Validate.ValidateUpdate(command);
+            Validate.ValidateUpdate(command);
 
             // Tìm để cập nhật
-            Order? service = await _unitOfWork.GetRepository<Order>().GetByIdAsync(command.Id)
+            Order? order = await _unitOfWork.GetRepository<Order>().GetByIdAsync(command.Id)
                ?? throw new BadRequestException("Id: " + MessageConstant.NotFound);
 
-            service.Note = command.Note;
-            service.Status = command.Status;
-            service.CustomerId = command.CustomerId;
-            service.PaymentMethod = command.PaymentMethod;
-            service.ShipAddressId = command.ShipAddressId;
-            service.TotalAmount = command.TotalAmount;
-            service.Status = command.Status;
-            service.UpdatedAt = TimeHelper.GetUtcNow();
+            order.Note = command.Note;
+            order.Status = command.Status;
+            order.CustomerId = command.CustomerId;
+            order.PaymentMethod = command.PaymentMethod;
+            order.ShipAddressId = command.ShipAddressId;
+            order.TotalAmount = command.TotalAmount;
+            order.Status = command.Status;
+            order.IsPaid = command.IsPaid;
+            order.BankId = command.BankId;
+            order.BankTransactionId = command.BankTransactionId;
+            order.UpdatedAt = TimeHelper.GetUtcNow();
 
-            _unitOfWork.GetRepository<Order>().Update(service);
+            _unitOfWork.GetRepository<Order>().Update(order);
             await _unitOfWork.SaveAsync();
-            return service;
+            return order;
 
         }
     }

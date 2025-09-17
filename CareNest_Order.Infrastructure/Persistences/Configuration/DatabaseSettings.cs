@@ -9,8 +9,6 @@
         public string? Database { get; set; }
         public string GetConnectionString()
         {
-            Console.WriteLine($"Host={Ip};Port={Port};Database={Database};Username={User};Password={Password}");
-
             return $"Host={Ip};Port={Port};Database={Database};Username={User};Password={Password}";
         }
         public Action Display => () =>

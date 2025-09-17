@@ -1,4 +1,5 @@
-﻿using CareNest_Order.Application.Interfaces.CQRS.Commands;
+﻿using CareNest_Order.Application.Exceptions.Validators;
+using CareNest_Order.Application.Interfaces.CQRS.Commands;
 using CareNest_Order.Application.Interfaces.UOW;
 using CareNest_Order.Domain.Entitites;
 using Shared.Helper;
@@ -16,9 +17,9 @@ namespace CareNest_Order.Application.Features.Commands.Create
 
         public async Task<Order> HandleAsync(CreateCommand command)
         {
-            //Validate.ValidateCreate(command);
+            Validate.ValidateCreate(command);
 
-            Order service = new()
+            Order order = new()
             {
                 Status = command.Status,
                 CustomerId = command.CustomerId,
@@ -27,12 +28,15 @@ namespace CareNest_Order.Application.Features.Commands.Create
                 ShipAddressId = command.ShipAddressId,
                 TotalAmount = command.TotalAmount,
                 ShopId = command.ShopId,
+                BankId = command.BankId,
+                BankTransactionId = command.BankTransactionId,
+                IsPaid = command.IsPaid,
                 CreatedAt = TimeHelper.GetUtcNow()
             };
-            await _unitOfWork.GetRepository<Order>().AddAsync(service);
+            await _unitOfWork.GetRepository<Order>().AddAsync(order);
             await _unitOfWork.SaveAsync();
 
-            return service;
+            return order;
         }
     }
 }

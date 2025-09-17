@@ -35,6 +35,18 @@ namespace CareNest_Order.Application.Features.Queries.GetAllPaging
         /// <summary>
         /// trạng thái: Pending / Confirmed / Checkin / Processing / Finished / Cancel
         /// </summary>
-        public OrderStatus? Status { get; set; } 
+        public OrderStatus? Status { get; set; }
+        /// <summary>
+        /// id ngân hàng
+        /// </summary>
+        public string? BankId { get; set; }
+        /// <summary>
+        /// id giao dịch
+        /// </summary>
+        public string? BankTransactionId { get; set; }
+        /// <summary>
+        /// check đã thanh toán chưa
+        /// </summary>
+        public bool IsPaid { get; set; }
     }
 }
