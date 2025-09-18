@@ -16,13 +16,13 @@ namespace CareNest_Order.Application.Features.Queries.GetById
 
         public async Task<Order> HandleAsync(GetByIdQuery query)
         {
-            Order? service = await _unitOfWork.GetRepository<Order>().GetByIdAsync(query.Id);
+            Order? order = await _unitOfWork.GetRepository<Order>().GetByIdAsync(query.Id);
 
-            if (service == null)
+            if (order == null)
             {
                 throw new Exception(MessageConstant.NotFound);
             }
-            return service;
+            return order;
         }
     }
 }

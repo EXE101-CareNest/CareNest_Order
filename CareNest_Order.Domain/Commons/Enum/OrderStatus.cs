@@ -4,9 +4,8 @@
     {
         Pending,
         Confirmed,
-        Checkin,
         Processing,
-        Finished,
+        Shipped,
         Cancel
     }
 }
