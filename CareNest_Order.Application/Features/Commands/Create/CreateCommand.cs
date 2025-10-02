@@ -1,4 +1,5 @@
 ﻿using CareNest_Order.Application.Interfaces.CQRS.Commands;
+using System.Collections.Generic;
 using CareNest_Order.Domain.Commons.Enum;
 using CareNest_Order.Domain.Entitites;
 
@@ -46,5 +47,23 @@ namespace CareNest_Order.Application.Features.Commands.Create
         /// check là đã thanh toán chưa
         /// </summary>
         public bool IsPaid { get; set; }
+
+        /// <summary>
+        /// Danh sách sản phẩm chi tiết và số lượng cần đặt
+        /// </summary>
+        public List<OrderItemDto> Items { get; set; } = new();
+    }
+
+    public class OrderItemDto
+    {
+        /// <summary>
+        /// Id của ProductDetail
+        /// </summary>
+        public string ProductDetailId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Số lượng đặt cho sản phẩm chi tiết
+        /// </summary>
+        public int Quantity { get; set; }
     }
 }
