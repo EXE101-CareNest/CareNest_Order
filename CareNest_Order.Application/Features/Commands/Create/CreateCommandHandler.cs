@@ -2,6 +2,7 @@
 using CareNest_Order.Application.Interfaces.CQRS.Commands;
 using CareNest_Order.Application.Interfaces.UOW;
 using CareNest_Order.Application.Interfaces.Services;
+using CareNest_Order.Application.Exceptions;
 using CareNest_Order.Domain.Entitites;
 using Shared.Helper;
 
@@ -21,6 +22,17 @@ namespace CareNest_Order.Application.Features.Commands.Create
         public async Task<Order> HandleAsync(CreateCommand command)
         {
             Validate.ValidateCreate(command);
+
+            // Validate ShopId qua Shop service nếu có
+            if (!string.IsNullOrWhiteSpace(command.ShopId))
+            {
+                var shopIdStr = command.ShopId!.Trim();
+                var shopCheckResult = await _apiService.GetAsync<object>("shop", $"/api/Shop/{shopIdStr}");
+                if (!shopCheckResult.IsSuccess)
+                {
+                    throw new BadRequestException($"Shop với ID {command.ShopId} không hợp lệ hoặc không tồn tại: {shopCheckResult.Message}");
+                }
+            }
 
             Order order = new()
             {

@@ -71,9 +71,13 @@ namespace CareNest_Order.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCommand command)
         {
-            Order result = await _dispatcher.DispatchAsync<CreateCommand, Order>(command);
-
-            return this.OkResponse(result, MessageConstant.SuccessCreate);
+            Order order = await _dispatcher.DispatchAsync<CreateCommand, Order>(command);
+            var response = new
+            {
+                order,
+                items = command.Items
+            };
+            return this.OkResponse(response, MessageConstant.SuccessCreate);
         }
 
         /// <summary>
