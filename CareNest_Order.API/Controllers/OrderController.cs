@@ -15,11 +15,11 @@ namespace CareNest_Order.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ServiceController : ControllerBase
+    public class OrderController : ControllerBase
     {
         private readonly IUseCaseDispatcher _dispatcher;
 
-        public ServiceController(IUseCaseDispatcher dispatcher)
+        public OrderController(IUseCaseDispatcher dispatcher)
         {
             _dispatcher = dispatcher;
         }
@@ -89,13 +89,13 @@ namespace CareNest_Order.API.Controllers
             var command = new UpdateCommand()
             {
                 Id = id,
-               CustomerId = request.CustomerId,
-               Note = request.Note,
-               PaymentMethod = request.PaymentMethod,
-               ShipAddressId = request.ShipAddressId,
-               ShopId = request.ShopId,
-               Status = request.Status,
-               TotalAmount = request.TotalAmount
+                CustomerId = request.CustomerId,
+                Note = request.Note,
+                PaymentMethod = request.PaymentMethod,
+                ShipAddressId = request.ShipAddressId,
+                ShopId = request.ShopId,
+                Status = request.Status,
+                TotalAmount = request.TotalAmount
             };
             Order result = await _dispatcher.DispatchAsync<UpdateCommand, Order>(command);
 

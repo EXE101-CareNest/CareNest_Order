@@ -8,6 +8,7 @@ using CareNest_Order.Application.Interfaces.CQRS;
 using CareNest_Order.Application.Interfaces.CQRS.Commands;
 using CareNest_Order.Application.Interfaces.CQRS.Queries;
 using CareNest_Order.Application.Interfaces.Services;
+using CareNest_Order.Application.Common.Options;
 using CareNest_Order.Application.Interfaces.UOW;
 using CareNest_Order.Application.UseCases;
 using CareNest_Order.Domain.Entitites;
@@ -99,6 +100,12 @@ builder.Services.AddScoped<IQueryHandler<GetByIdQuery, Order>, GetByIdQueryHandl
 builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("JwtSettings")
 );
+
+// Đăng ký APIServiceOption và IAPIService
+builder.Services.Configure<APIServiceOption>(
+    builder.Configuration.GetSection("APIService")
+);
+builder.Services.AddHttpClient<IAPIService, APIService>();
 
 
 //Đăng ký cho FE
