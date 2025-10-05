@@ -4,7 +4,9 @@ using CareNest_Order.Application.Interfaces.UOW;
 using CareNest_Order.Application.Interfaces.Services;
 using CareNest_Order.Application.Exceptions;
 using CareNest_Order.Domain.Entitites;
+using CareNest_Order.Domain.Commons.Enum;
 using Shared.Helper;
+using System.Text.Json;
 
 namespace CareNest_Order.Application.Features.Commands.Create
 {
@@ -34,14 +36,17 @@ namespace CareNest_Order.Application.Features.Commands.Create
                 }
             }
 
+            // Mặc định status Pending nếu không truyền
+            var initialStatus = command.Status ?? OrderStatus.Pending;
+
             Order order = new()
             {
-                Status = command.Status,
+                Status = initialStatus,
                 CustomerId = command.CustomerId,
                 Note = command.Note,
                 PaymentMethod = command.PaymentMethod,
                 ShipAddressId = command.ShipAddressId,
-                TotalAmount = command.TotalAmount,
+                TotalAmount = 0,
                 ShopId = command.ShopId,
                 BankId = command.BankId,
                 BankTransactionId = command.BankTransactionId,
@@ -54,6 +59,7 @@ namespace CareNest_Order.Application.Features.Commands.Create
             // Orchestrate tạo OrderDetail cho từng item nếu có
             if (command.Items != null && command.Items.Count > 0)
             {
+                double totalAmountSum = 0;
                 foreach (var item in command.Items)
                 {
                     var payload = new
@@ -61,16 +67,34 @@ namespace CareNest_Order.Application.Features.Commands.Create
                         productDetailId = item.ProductDetailId,
                         orderId = order.Id,
                         quantity = item.Quantity,
-                        totalAmount = command.TotalAmount // hoặc tính theo từng item nếu có
+                        totalAmount = 0
                     };
 
-                    var result = await _apiService.PostAsync<object>("orderdetail", "/api/OrderDetail", payload);
+                    var result = await _apiService.PostAsync<JsonElement>("orderdetail", "/api/OrderDetail", payload);
                     if (!result.IsSuccess)
                     {
                         // Tuỳ chính sách rollback; hiện tại ném lỗi để client biết thất bại
                         throw new Exception(result.Message ?? "Tạo OrderDetail thất bại");
                     }
+
+                    try
+                    {
+                        // Đọc totalAmount từ data trả về
+                        if (result.Data.ValueKind == JsonValueKind.Object && result.Data.TryGetProperty("totalAmount", out var totalProp))
+                        {
+                            totalAmountSum += totalProp.GetDouble();
+                        }
+                    }
+                    catch
+                    {
+                        // Bỏ qua nếu parse lỗi, nhưng không chặn luồng
+                    }
                 }
+
+                // Cập nhật tổng tiền cho Order sau khi tạo xong tất cả OrderDetail
+                order.TotalAmount = totalAmountSum;
+                await _unitOfWork.GetRepository<Order>().UpdateAsync(order);
+                await _unitOfWork.SaveAsync();
             }
 
             return order;
