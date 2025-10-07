@@ -25,6 +25,17 @@ namespace CareNest_Order.Application.Features.Commands.Update
             // Gọi validator để kiểm tra dữ liệu
             Validate.ValidateUpdate(command);
 
+            // Validate ShipAddressId qua Address service nếu có
+            if (!string.IsNullOrWhiteSpace(command.ShipAddressId))
+            {
+                var addressId = command.ShipAddressId!.Trim();
+                var addressCheck = await _apiService.GetAsync<object>("address", $"/api/address/{addressId}");
+                if (!addressCheck.IsSuccess)
+                {
+                    throw new BadRequestException($"ShipAddressId không hợp lệ hoặc không tồn tại: {addressCheck.Message}");
+                }
+            }
+
             // Validate ShopId nếu có
             if (!string.IsNullOrWhiteSpace(command.ShopId))
             {
