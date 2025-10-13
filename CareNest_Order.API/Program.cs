@@ -109,6 +109,9 @@ builder.Services.Configure<APIServiceOption>(
 );
 builder.Services.AddHttpClient<IAPIService, APIService>();
 
+// Email service
+builder.Services.AddHttpClient<IEmailService, EmailService>();
+
 
 //Đăng ký cho FE
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
