@@ -5,6 +5,7 @@ namespace CareNest_Order.Application.Common.Options
         public string BaseUrlOrderDetail { get; set; } = string.Empty;
         public string BaseUrlShop { get; set; } = string.Empty;
         public string BaseUrlAddress { get; set; } = string.Empty;
+        public string BaseUrlProduct { get; set; } = string.Empty;
     }
 }
 

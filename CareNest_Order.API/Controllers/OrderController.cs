@@ -9,6 +9,7 @@ using CareNest_Order.Domain.Commons.Constant;
 using CareNest_Order.Domain.Entitites;
 using CareNest_Order.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using CareNest_Order.Application.Features.Queries.Dashboard;
 
 
 namespace CareNest_Order.API.Controllers
@@ -47,6 +48,48 @@ namespace CareNest_Order.API.Controllers
                 SortDirection = sortDirection
             };
             var result = await _dispatcher.DispatchQueryAsync<GetAllPagingQuery, PageResult<OrderResponse>>(query);
+            return this.OkResponse(result, MessageConstant.SuccessGet);
+        }
+
+        /// <summary>
+        /// Dashboard theo shop (tổng hợp) hoặc chi tiết theo shop khi truyền shopId
+        /// </summary>
+        /// <param name="shopId">Id shop (tùy chọn). Không truyền: tổng hợp theo shop. Có truyền: chi tiết OrderDetail của shop.</param>
+        /// <param name="pageIndex">Trang hiện tại (áp dụng cho danh sách shop hoặc danh sách OrderDetail)</param>
+        /// <param name="pageSize">Số phần tử mỗi trang</param>
+        /// <param name="sortBy">Tổng hợp: shopName | totalOrders | totalOrderDetails. Chi tiết: createdAt | totalAmount | quantity | productName</param>
+        /// <param name="sortDirection">asc | desc</param>
+        /// <param name="ordersLimit">Giới hạn số đơn trong mảng orders của từng shop (tổng hợp)</param>
+        /// <param name="ordersSortBy">createdAt | orderDetailCount</param>
+        /// <param name="ordersSortDirection">asc | desc</param>
+        /// <param name="orderId">(Chi tiết) lọc theo 1 order cụ thể</param>
+        /// <returns></returns>
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> Dashboard(
+            [FromQuery] string? shopId = null,
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortDirection = "asc",
+            [FromQuery] int ordersLimit = 5,
+            [FromQuery] string? ordersSortBy = "createdAt",
+            [FromQuery] string? ordersSortDirection = "desc",
+            [FromQuery] string? orderId = null)
+        {
+            var query = new OrderDashboardQuery
+            {
+                ShopId = shopId,
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                SortBy = sortBy,
+                SortDirection = sortDirection,
+                OrdersLimit = ordersLimit,
+                OrdersSortBy = ordersSortBy,
+                OrdersSortDirection = ordersSortDirection,
+                OrderId = orderId
+            };
+
+            var result = await _dispatcher.DispatchQueryAsync<OrderDashboardQuery, OrderDashboardResult>(query);
             return this.OkResponse(result, MessageConstant.SuccessGet);
         }
 
