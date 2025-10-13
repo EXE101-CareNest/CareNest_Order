@@ -4,10 +4,12 @@ using CareNest_Order.Application.Features.Commands.Delete;
 using CareNest_Order.Application.Features.Commands.Update;
 using CareNest_Order.Application.Features.Queries.GetAllPaging;
 using CareNest_Order.Application.Features.Queries.GetById;
+using CareNest_Order.Application.Features.Queries.Dashboard;
 using CareNest_Order.Application.Interfaces.CQRS;
 using CareNest_Order.Application.Interfaces.CQRS.Commands;
 using CareNest_Order.Application.Interfaces.CQRS.Queries;
 using CareNest_Order.Application.Interfaces.Services;
+using CareNest_Order.Application.Common.Options;
 using CareNest_Order.Application.Interfaces.UOW;
 using CareNest_Order.Application.UseCases;
 using CareNest_Order.Domain.Entitites;
@@ -95,10 +97,17 @@ builder.Services.AddScoped<ICommandHandler<DeleteCommand>, DeleteCommandHandler>
 //query
 builder.Services.AddScoped<IQueryHandler<GetAllPagingQuery, PageResult<OrderResponse>>, GetAllPagingQueryHandler>();
 builder.Services.AddScoped<IQueryHandler<GetByIdQuery, Order>, GetByIdQueryHandler>();
+builder.Services.AddScoped<IQueryHandler<OrderDashboardQuery, OrderDashboardResult>, OrderDashboardQueryHandler>();
 
 builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("JwtSettings")
 );
+
+// Đăng ký APIServiceOption và IAPIService
+builder.Services.Configure<APIServiceOption>(
+    builder.Configuration.GetSection("APIService")
+);
+builder.Services.AddHttpClient<IAPIService, APIService>();
 
 
 //Đăng ký cho FE

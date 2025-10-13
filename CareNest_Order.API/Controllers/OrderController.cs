@@ -9,17 +9,18 @@ using CareNest_Order.Domain.Commons.Constant;
 using CareNest_Order.Domain.Entitites;
 using CareNest_Order.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using CareNest_Order.Application.Features.Queries.Dashboard;
 
 
 namespace CareNest_Order.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ServiceController : ControllerBase
+    public class OrderController : ControllerBase
     {
         private readonly IUseCaseDispatcher _dispatcher;
 
-        public ServiceController(IUseCaseDispatcher dispatcher)
+        public OrderController(IUseCaseDispatcher dispatcher)
         {
             _dispatcher = dispatcher;
         }
@@ -51,6 +52,48 @@ namespace CareNest_Order.API.Controllers
         }
 
         /// <summary>
+        /// Dashboard theo shop (tổng hợp) hoặc chi tiết theo shop khi truyền shopId
+        /// </summary>
+        /// <param name="shopId">Id shop (tùy chọn). Không truyền: tổng hợp theo shop. Có truyền: chi tiết OrderDetail của shop.</param>
+        /// <param name="pageIndex">Trang hiện tại (áp dụng cho danh sách shop hoặc danh sách OrderDetail)</param>
+        /// <param name="pageSize">Số phần tử mỗi trang</param>
+        /// <param name="sortBy">Tổng hợp: shopName | totalOrders | totalOrderDetails. Chi tiết: createdAt | totalAmount | quantity | productName</param>
+        /// <param name="sortDirection">asc | desc</param>
+        /// <param name="ordersLimit">Giới hạn số đơn trong mảng orders của từng shop (tổng hợp)</param>
+        /// <param name="ordersSortBy">createdAt | orderDetailCount</param>
+        /// <param name="ordersSortDirection">asc | desc</param>
+        /// <param name="orderId">(Chi tiết) lọc theo 1 order cụ thể</param>
+        /// <returns></returns>
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> Dashboard(
+            [FromQuery] string? shopId = null,
+            [FromQuery] int pageIndex = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortDirection = "asc",
+            [FromQuery] int ordersLimit = 5,
+            [FromQuery] string? ordersSortBy = "createdAt",
+            [FromQuery] string? ordersSortDirection = "desc",
+            [FromQuery] string? orderId = null)
+        {
+            var query = new OrderDashboardQuery
+            {
+                ShopId = shopId,
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                SortBy = sortBy,
+                SortDirection = sortDirection,
+                OrdersLimit = ordersLimit,
+                OrdersSortBy = ordersSortBy,
+                OrdersSortDirection = ordersSortDirection,
+                OrderId = orderId
+            };
+
+            var result = await _dispatcher.DispatchQueryAsync<OrderDashboardQuery, OrderDashboardResult>(query);
+            return this.OkResponse(result, MessageConstant.SuccessGet);
+        }
+
+        /// <summary>
         /// Hiển thị chi tiết đơn hàng theo id
         /// </summary>
         /// <param name="id">Id đơn hàng</param>
@@ -71,9 +114,13 @@ namespace CareNest_Order.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCommand command)
         {
-            Order result = await _dispatcher.DispatchAsync<CreateCommand, Order>(command);
-
-            return this.OkResponse(result, MessageConstant.SuccessCreate);
+            Order order = await _dispatcher.DispatchAsync<CreateCommand, Order>(command);
+            var response = new
+            {
+                order,
+                items = command.Items
+            };
+            return this.OkResponse(response, MessageConstant.SuccessCreate);
         }
 
         /// <summary>
@@ -89,13 +136,13 @@ namespace CareNest_Order.API.Controllers
             var command = new UpdateCommand()
             {
                 Id = id,
-               CustomerId = request.CustomerId,
-               Note = request.Note,
-               PaymentMethod = request.PaymentMethod,
-               ShipAddressId = request.ShipAddressId,
-               ShopId = request.ShopId,
-               Status = request.Status,
-               TotalAmount = request.TotalAmount
+                CustomerId = request.CustomerId,
+                Note = request.Note,
+                PaymentMethod = request.PaymentMethod,
+                ShipAddressId = request.ShipAddressId,
+                ShopId = request.ShopId,
+                Status = request.Status,
+                TotalAmount = request.TotalAmount
             };
             Order result = await _dispatcher.DispatchAsync<UpdateCommand, Order>(command);
 
