@@ -35,7 +35,10 @@ namespace CareNest_Order.Infrastructure.Services
                 return ResponseResult<object>.Failure("Missing APIService.BaseUrlAuthorize configuration");
             }
 
-            string subject = $"[{shopName}] Xác nhận đặt lịch #{appointmentId}";
+            // For Order module: use order-specific wording
+            string subject = string.IsNullOrWhiteSpace(shopName)
+                ? $"Xác nhận đơn hàng #{appointmentId}"
+                : $"[{shopName}] Xác nhận đơn hàng #{appointmentId}";
             string authorizeEndpoint = $"{_apiOptions.BaseUrlAuthorize}/email/send-mail?userId={Uri.EscapeDataString(customerId)}&subject={Uri.EscapeDataString(subject)}";
 
             string html = GenerateAppointmentConfirmationHtml(customerName, shopName, appointmentId, startTime, totalAmount, details);
@@ -76,18 +79,21 @@ namespace CareNest_Order.Infrastructure.Services
             // Simple HTML template; can be replaced by Razor/Handlebars later
             var builder = new StringBuilder();
             builder.Append("<html><head><meta charset=\"utf-8\"/></head><body>");
-            builder.Append($"<h2>Xác nhận đặt lịch thành công</h2>");
+            builder.Append($"<h2>Xác nhận đơn hàng thành công</h2>");
             builder.Append($"<p>Xin chào {System.Net.WebUtility.HtmlEncode(customerName)},</p>");
             builder.Append("<table border=\"1\" cellpadding=\"6\" cellspacing=\"0\">");
-            builder.Append($"<tr><td>Mã đặt lịch</td><td>{System.Net.WebUtility.HtmlEncode(appointmentId)}</td></tr>");
-            builder.Append($"<tr><td>Cửa hàng</td><td>{System.Net.WebUtility.HtmlEncode(shopName)}</td></tr>");
-            builder.Append($"<tr><td>Thời gian</td><td>{System.Net.WebUtility.HtmlEncode(startTime)}</td></tr>");
+            builder.Append($"<tr><td>Mã đơn hàng</td><td>{System.Net.WebUtility.HtmlEncode(appointmentId)}</td></tr>");
+            if (!string.IsNullOrWhiteSpace(shopName))
+            {
+                builder.Append($"<tr><td>Cửa hàng</td><td>{System.Net.WebUtility.HtmlEncode(shopName)}</td></tr>");
+            }
+            builder.Append($"<tr><td>Thời gian tạo</td><td>{System.Net.WebUtility.HtmlEncode(startTime)}</td></tr>");
             builder.Append($"<tr><td>Tổng tiền</td><td>{totalAmount:N0} VNĐ</td></tr>");
             builder.Append("</table><br/>");
 
-            builder.Append("<h3>Chi tiết dịch vụ</h3>");
+            builder.Append("<h3>Chi tiết đơn hàng</h3>");
             builder.Append("<table border=\"1\" cellpadding=\"6\" cellspacing=\"0\">");
-            builder.Append("<tr><th>Dịch vụ</th><th>Số lượng thú cưng</th><th>Ghi chú</th><th>Thành tiền</th></tr>");
+            builder.Append("<tr><th>Sản phẩm</th><th>Số lượng</th><th>Ghi chú</th><th>Thành tiền</th></tr>");
 
             foreach (var item in details)
             {
@@ -96,8 +102,14 @@ namespace CareNest_Order.Infrastructure.Services
                     .GetProperties()
                     .ToDictionary(p => p.Name, p => p.GetValue(item));
 
-                string name = Convert.ToString(dict.FirstOrDefault(k => string.Equals(k.Key, "ServiceDetailName", StringComparison.OrdinalIgnoreCase)).Value) ?? string.Empty;
-                string qty = Convert.ToString(dict.FirstOrDefault(k => string.Equals(k.Key, "PetQuantity", StringComparison.OrdinalIgnoreCase)).Value) ?? string.Empty;
+                // Map Order item fields only (no Appointment fallbacks)
+                string name =
+                    Convert.ToString(dict.FirstOrDefault(k => string.Equals(k.Key, "ProductName", StringComparison.OrdinalIgnoreCase)).Value)
+                    ?? Convert.ToString(dict.FirstOrDefault(k => string.Equals(k.Key, "ProductDetailId", StringComparison.OrdinalIgnoreCase)).Value)
+                    ?? string.Empty;
+                string qty =
+                    Convert.ToString(dict.FirstOrDefault(k => string.Equals(k.Key, "Quantity", StringComparison.OrdinalIgnoreCase)).Value)
+                    ?? string.Empty;
                 string note = Convert.ToString(dict.FirstOrDefault(k => string.Equals(k.Key, "Note", StringComparison.OrdinalIgnoreCase)).Value) ?? string.Empty;
                 string lineTotal = Convert.ToString(dict.FirstOrDefault(k => string.Equals(k.Key, "TotalAmount", StringComparison.OrdinalIgnoreCase)).Value) ?? string.Empty;
 

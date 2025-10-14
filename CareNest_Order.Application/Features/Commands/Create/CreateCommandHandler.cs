@@ -14,11 +14,13 @@ namespace CareNest_Order.Application.Features.Commands.Create
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IAPIService _apiService;
+        private readonly IEmailService _emailService;
 
-        public CreateCommandHandler(IUnitOfWork unitOfWork, IAPIService apiService)
+        public CreateCommandHandler(IUnitOfWork unitOfWork, IAPIService apiService, IEmailService emailService)
         {
             _unitOfWork = unitOfWork;
             _apiService = apiService;
+            _emailService = emailService;
         }
 
         public async Task<Order> HandleAsync(CreateCommand command)
@@ -90,6 +92,45 @@ namespace CareNest_Order.Application.Features.Commands.Create
 
                 // Không cần cập nhật TotalAmount nữa vì đã sử dụng command.TotalAmount từ đầu
                 // order.TotalAmount đã được set từ command.TotalAmount khi tạo Order
+            }
+
+            // Gửi email xác nhận đơn hàng (best-effort, không chặn luồng)
+            try
+            {
+                var createdAtText = (order.CreatedAt ?? TimeHelper.GetUtcNow()).ToString("dd/MM/yyyy HH:mm");
+                var details = new List<object>();
+                if (command.Items != null && command.Items.Count > 0)
+                {
+                    foreach (var item in command.Items)
+                    {
+                        details.Add(new
+                        {
+                            ProductDetailId = item.ProductDetailId,
+                            Quantity = item.Quantity,
+                            Note = order.Note,
+                            TotalAmount = (object?)null
+                        });
+                    }
+                }
+
+                var emailResult = await _emailService.SendAppointmentConfirmationEmailAsync(
+                    order.CustomerId ?? string.Empty,
+                    string.Empty,
+                    string.Empty,
+                    order.Id,
+                    createdAtText,
+                    order.TotalAmount,
+                    details
+                );
+
+                if (!emailResult.IsSuccess)
+                {
+                    Console.WriteLine($"Order email send failed: {emailResult.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Order email send error: {ex.Message}");
             }
 
             return order;
