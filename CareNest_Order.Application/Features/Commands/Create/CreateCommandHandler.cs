@@ -57,7 +57,7 @@ namespace CareNest_Order.Application.Features.Commands.Create
                 Note = command.Note,
                 PaymentMethod = command.PaymentMethod,
                 ShipAddressId = command.ShipAddressId,
-                TotalAmount = 0,
+                TotalAmount = command.TotalAmount, // Sử dụng totalAmount từ request thay vì hardcode 0
                 ShopId = command.ShopId,
                 BankId = command.BankId,
                 BankTransactionId = command.BankTransactionId,
@@ -70,15 +70,14 @@ namespace CareNest_Order.Application.Features.Commands.Create
             // Orchestrate tạo OrderDetail cho từng item nếu có
             if (command.Items != null && command.Items.Count > 0)
             {
-                double totalAmountSum = 0;
                 foreach (var item in command.Items)
                 {
                     var payload = new
                     {
                         productDetailId = item.ProductDetailId,
                         orderId = order.Id,
-                        quantity = item.Quantity,
-                        totalAmount = 0
+                        quantity = item.Quantity
+                        // Bỏ totalAmount để OrderDetail service tự tính toán từ quantity * price
                     };
 
                     var result = await _apiService.PostAsync<JsonElement>("orderdetail", "/api/OrderDetail", payload);
@@ -87,25 +86,10 @@ namespace CareNest_Order.Application.Features.Commands.Create
                         // Tuỳ chính sách rollback; hiện tại ném lỗi để client biết thất bại
                         throw new Exception(result.Message ?? "Tạo OrderDetail thất bại");
                     }
-
-                    try
-                    {
-                        // Đọc totalAmount từ data trả về
-                        if (result.Data.ValueKind == JsonValueKind.Object && result.Data.TryGetProperty("totalAmount", out var totalProp))
-                        {
-                            totalAmountSum += totalProp.GetDouble();
-                        }
-                    }
-                    catch
-                    {
-                        // Bỏ qua nếu parse lỗi, nhưng không chặn luồng
-                    }
                 }
 
-                // Cập nhật tổng tiền cho Order sau khi tạo xong tất cả OrderDetail
-                order.TotalAmount = totalAmountSum;
-                await _unitOfWork.GetRepository<Order>().UpdateAsync(order);
-                await _unitOfWork.SaveAsync();
+                // Không cần cập nhật TotalAmount nữa vì đã sử dụng command.TotalAmount từ đầu
+                // order.TotalAmount đã được set từ command.TotalAmount khi tạo Order
             }
 
             return order;
