@@ -12,8 +12,8 @@ namespace CareNest_Order.Application.Common.DTOs
         public double Amount { get; set; }
         public string Description { get; set; } = string.Empty;
         public string OrderId { get; set; } = string.Empty;
-        public string Template { get; set; } = string.Empty;
-        public bool Download { get; set; }
+        public string Template { get; set; } = "qronly";
+        public bool Download { get; set; } = false;
         public DateTime CreatedAt { get; set; }
         public DateTime ExpiresAt { get; set; }
     }

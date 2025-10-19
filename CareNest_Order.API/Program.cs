@@ -91,7 +91,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 //command
-builder.Services.AddScoped<ICommandHandler<CreateCommand, Order>, CreateCommandHandler>();
+builder.Services.AddScoped<ICommandHandler<CreateCommand, CreateOrderResult>, CreateCommandHandler>();
 builder.Services.AddScoped<ICommandHandler<UpdateCommand, Order>, UpdateCommandHandler>();
 builder.Services.AddScoped<ICommandHandler<DeleteCommand>, DeleteCommandHandler>();
 //query
