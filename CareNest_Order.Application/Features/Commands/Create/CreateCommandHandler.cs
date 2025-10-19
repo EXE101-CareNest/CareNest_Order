@@ -75,6 +75,8 @@ namespace CareNest_Order.Application.Features.Commands.Create
             // Orchestrate tạo OrderDetail cho từng item nếu có
             if (command.Items != null && command.Items.Count > 0)
             {
+                double totalCalculatedAmount = 0;
+
                 foreach (var item in command.Items)
                 {
                     var payload = new
@@ -91,17 +93,46 @@ namespace CareNest_Order.Application.Features.Commands.Create
                         // Tuỳ chính sách rollback; hiện tại ném lỗi để client biết thất bại
                         throw new Exception(result.Message ?? "Tạo OrderDetail thất bại");
                     }
+
+                    // Parse response để lấy amount từ OrderDetail vừa tạo và cộng dồn
+                    if (result.Data.ValueKind != JsonValueKind.Null)
+                    {
+                        try
+                        {
+                            // Tìm property chứa amount trong response (có thể là "amount", "totalAmount", "price", etc.)
+                            if (result.Data.TryGetProperty("amount", out var amountValue) && amountValue.ValueKind == JsonValueKind.Number)
+                            {
+                                totalCalculatedAmount += amountValue.GetDouble();
+                            }
+                            else if (result.Data.TryGetProperty("totalAmount", out var totalAmountValue) && totalAmountValue.ValueKind == JsonValueKind.Number)
+                            {
+                                totalCalculatedAmount += totalAmountValue.GetDouble();
+                            }
+                            else if (result.Data.TryGetProperty("price", out var priceValue) && priceValue.ValueKind == JsonValueKind.Number)
+                            {
+                                totalCalculatedAmount += priceValue.GetDouble();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to parse amount from OrderDetail response: {ex.Message}");
+                        }
+                    }
                 }
 
-                // Không cần cập nhật TotalAmount nữa vì đã sử dụng command.TotalAmount từ đầu
-                // order.TotalAmount đã được set từ command.TotalAmount khi tạo Order
+                // Cập nhật order.TotalAmount với tổng đã tính được
+                if (totalCalculatedAmount > 0)
+                {
+                    order.TotalAmount = totalCalculatedAmount;
+                    await _unitOfWork.SaveAsync();
+                }
             }
 
             // Tạo Payment QR nếu có thông tin Shop và TotalAmount > 0
             PaymentQrDto? paymentQr = null;
-            if (shopInfo != null && order.TotalAmount > 0 && 
-                !string.IsNullOrWhiteSpace(shopInfo.BankCode) && 
-                !string.IsNullOrWhiteSpace(shopInfo.BankAccountNumber) && 
+            if (shopInfo != null && order.TotalAmount > 0 &&
+                !string.IsNullOrWhiteSpace(shopInfo.BankCode) &&
+                !string.IsNullOrWhiteSpace(shopInfo.BankAccountNumber) &&
                 !string.IsNullOrWhiteSpace(shopInfo.BankAccountName))
             {
                 try
@@ -118,8 +149,8 @@ namespace CareNest_Order.Application.Features.Commands.Create
                         download = false
                     };
 
-                    var paymentResult = await _apiService.PostAsync<PaymentQrResponse>("payment", "/api/payment/create-qr", paymentPayload);
-                    if (paymentResult.IsSuccess && paymentResult.Data?.Data != null)
+                    var paymentResult = await _apiService.PostAsyncDirect<PaymentQrResponse>("payment", "/api/payment/create-qr", paymentPayload);
+                    if (paymentResult.IsSuccess && paymentResult.Data != null)
                     {
                         paymentQr = paymentResult.Data.Data;
                     }

@@ -1,9 +1,16 @@
-﻿namespace CareNest_Order.Application.Common
+﻿using System.Text.Json.Serialization;
+
+namespace CareNest_Order.Application.Common
 {
     public class ApiResponse<T>
     {
+        [JsonPropertyName("success")]
         public bool Success { get; set; }
+        
+        [JsonPropertyName("message")]
         public string? Message { get; set; }
+        
+        [JsonPropertyName("data")]
         public T? Data { get; set; }
 
         public ApiResponse(bool success, string? message = null, T? data = default)

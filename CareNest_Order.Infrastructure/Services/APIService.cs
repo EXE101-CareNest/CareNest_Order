@@ -172,6 +172,40 @@ namespace CareNest_Order.Infrastructure.Services
             }
         }
 
+        public async Task<ResponseResult<T>> PostAsyncDirect<T>(string serviceType, string endpoint, object data)
+        {
+            try
+            {
+                var baseUrl = GetBaseUrl(serviceType);
+                var fullUrl = $"{baseUrl}{endpoint}";
+
+                var json = JsonSerializer.Serialize(data);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync(fullUrl, content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Deserialize trực tiếp thành T thay vì ApiResponse<T>
+                    var result = JsonSerializer.Deserialize<T>(responseContent, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    return ResponseResult<T>.Success(result!, "Success");
+                }
+                else
+                {
+                    return ResponseResult<T>.Failure($"HTTP {response.StatusCode}: {responseContent}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return ResponseResult<T>.Failure($"API call failed: {ex.Message}");
+            }
+        }
+
         private string GetBaseUrl(string serviceType)
         {
             return serviceType.ToLower() switch

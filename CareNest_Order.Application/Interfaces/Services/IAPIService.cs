@@ -9,6 +9,7 @@ namespace CareNest_Order.Application.Interfaces.Services
         Task<ResponseResult<T>> PostAsync<T>(string serviceType, string endpoint, object data);
         Task<ResponseResult<T>> PutAsync<T>(string serviceType, string endpoint, object data);
         Task<ResponseResult<T>> DeleteAsync<T>(string serviceType, string endpoint);
+        Task<ResponseResult<T>> PostAsyncDirect<T>(string serviceType, string endpoint, object data);
     }
 }
 
