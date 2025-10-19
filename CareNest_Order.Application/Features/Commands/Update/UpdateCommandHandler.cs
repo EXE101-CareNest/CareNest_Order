@@ -3,6 +3,7 @@ using CareNest_Order.Application.Exceptions.Validators;
 using CareNest_Order.Application.Interfaces.CQRS.Commands;
 using CareNest_Order.Application.Interfaces.UOW;
 using CareNest_Order.Application.Interfaces.Services;
+using CareNest_Order.Application.Common.DTOs;
 using CareNest_Order.Domain.Commons.Constant;
 using CareNest_Order.Domain.Entitites;
 using Shared.Helper;
@@ -40,7 +41,7 @@ namespace CareNest_Order.Application.Features.Commands.Update
             if (!string.IsNullOrWhiteSpace(command.ShopId))
             {
                 var shopIdStr = command.ShopId!.Trim();
-                var shopCheckResult = await _apiService.GetAsync<object>("shop", $"/api/Shop/{shopIdStr}");
+                var shopCheckResult = await _apiService.GetAsync<ShopDto>("shop", $"/api/Shop/{shopIdStr}");
                 if (!shopCheckResult.IsSuccess)
                 {
                     throw new BadRequestException($"Shop với ID {command.ShopId} không hợp lệ hoặc không tồn tại: {shopCheckResult.Message}");

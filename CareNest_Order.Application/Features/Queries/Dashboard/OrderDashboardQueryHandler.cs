@@ -2,6 +2,7 @@ using CareNest_Order.Application.Common;
 using CareNest_Order.Application.Interfaces.CQRS.Queries;
 using CareNest_Order.Application.Interfaces.Services;
 using CareNest_Order.Application.Common.Options;
+using CareNest_Order.Application.Common.DTOs;
 using CareNest_Order.Application.Features.Queries.Dashboard;
 using CareNest_Order.Application.Interfaces.UOW;
 using CareNest_Order.Domain.Entitites;
@@ -268,11 +269,6 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
     }
 
     // DTOs for external services
-    internal class ShopDto
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-    }
 
     internal class OrderDetailPageDto
     {

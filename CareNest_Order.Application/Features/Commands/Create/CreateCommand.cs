@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using CareNest_Order.Domain.Commons.Enum;
 using CareNest_Order.Domain.Entitites;
+using CareNest_Order.Application.Common.DTOs;
 
 namespace CareNest_Order.Application.Features.Commands.Create
 {
-    public class CreateCommand : ICommand<Order>
+    public class CreateCommand : ICommand<CreateOrderResult>
     {
         /// <summary>
         /// Id khách hàng order
@@ -65,5 +66,12 @@ namespace CareNest_Order.Application.Features.Commands.Create
         /// Số lượng đặt cho sản phẩm chi tiết
         /// </summary>
         public int Quantity { get; set; }
+    }
+
+    public class CreateOrderResult
+    {
+        public Order Order { get; set; } = new();
+        public PaymentQrDto? PaymentQr { get; set; }
+        public List<OrderItemDto> Items { get; set; } = new();
     }
 }
