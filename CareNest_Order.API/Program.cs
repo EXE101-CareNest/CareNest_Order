@@ -93,6 +93,7 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 //command
 builder.Services.AddScoped<ICommandHandler<CreateCommand, CreateOrderResult>, CreateCommandHandler>();
 builder.Services.AddScoped<ICommandHandler<UpdateCommand, Order>, UpdateCommandHandler>();
+builder.Services.AddScoped<ICommandHandler<UpdateOrderStatusToCancelCommand, Order>, UpdateOrderStatusToCancelCommandHandler>();
 builder.Services.AddScoped<ICommandHandler<DeleteCommand>, DeleteCommandHandler>();
 //query
 builder.Services.AddScoped<IQueryHandler<GetAllPagingQuery, PageResult<OrderResponse>>, GetAllPagingQueryHandler>();

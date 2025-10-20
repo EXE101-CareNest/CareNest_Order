@@ -155,5 +155,18 @@ namespace CareNest_Order.API.Controllers
             await _dispatcher.DispatchAsync(new DeleteCommand { Id = id });
             return this.OkResponse(MessageConstant.SuccessDelete);
         }
+
+        /// <summary>
+        /// Cập nhật trạng thái đơn hàng thành "Cancel" - API cho Sepay gọi
+        /// </summary>
+        /// <param name="orderId">Id đơn hàng cần cập nhật</param>
+        /// <returns>Thông tin đơn hàng đã được cập nhật</returns>
+        [HttpPut("update-status-to-cancel/{orderId}")]
+        public async Task<IActionResult> UpdateStatusToCancel(string orderId)
+        {
+            var command = new UpdateOrderStatusToCancelCommand { OrderId = orderId };
+            Order result = await _dispatcher.DispatchAsync<UpdateOrderStatusToCancelCommand, Order>(command);
+            return this.OkResponse(result, "Order status updated to Cancel successfully");
+        }
     }
 }
