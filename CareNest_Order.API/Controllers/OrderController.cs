@@ -4,6 +4,7 @@ using CareNest_Order.Application.Features.Commands.Delete;
 using CareNest_Order.Application.Features.Commands.Update;
 using CareNest_Order.Application.Features.Queries.GetAllPaging;
 using CareNest_Order.Application.Features.Queries.GetById;
+using CareNest_Order.Application.Features.Queries.CheckOrderStatus;
 using CareNest_Order.Application.Interfaces.CQRS;
 using CareNest_Order.Domain.Commons.Constant;
 using CareNest_Order.Domain.Entitites;
@@ -167,6 +168,19 @@ namespace CareNest_Order.API.Controllers
             var command = new UpdateOrderStatusToCancelCommand { OrderId = orderId };
             Order result = await _dispatcher.DispatchAsync<UpdateOrderStatusToCancelCommand, Order>(command);
             return this.OkResponse(result, "Order status updated to Cancel successfully");
+        }
+
+        /// <summary>
+        /// Kiểm tra trạng thái đơn hàng có bằng "Cancel" (4) hay không - API cho Frontend
+        /// </summary>
+        /// <param name="orderId">Id đơn hàng cần kiểm tra</param>
+        /// <returns>true nếu status = Cancel, false nếu không</returns>
+        [HttpGet("check-status-cancel/{orderId}")]
+        public async Task<IActionResult> CheckOrderStatusCancel(string orderId)
+        {
+            var query = new CheckOrderStatusQuery { OrderId = orderId };
+            bool isCancel = await _dispatcher.DispatchQueryAsync<CheckOrderStatusQuery, bool>(query);
+            return this.OkResponse(new { isCancel, orderId }, isCancel ? "Order is Cancel" : "Order is not Cancel");
         }
     }
 }

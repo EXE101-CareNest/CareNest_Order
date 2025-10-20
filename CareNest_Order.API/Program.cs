@@ -4,6 +4,7 @@ using CareNest_Order.Application.Features.Commands.Delete;
 using CareNest_Order.Application.Features.Commands.Update;
 using CareNest_Order.Application.Features.Queries.GetAllPaging;
 using CareNest_Order.Application.Features.Queries.GetById;
+using CareNest_Order.Application.Features.Queries.CheckOrderStatus;
 using CareNest_Order.Application.Features.Queries.Dashboard;
 using CareNest_Order.Application.Interfaces.CQRS;
 using CareNest_Order.Application.Interfaces.CQRS.Commands;
@@ -99,6 +100,7 @@ builder.Services.AddScoped<ICommandHandler<DeleteCommand>, DeleteCommandHandler>
 builder.Services.AddScoped<IQueryHandler<GetAllPagingQuery, PageResult<OrderResponse>>, GetAllPagingQueryHandler>();
 builder.Services.AddScoped<IQueryHandler<GetByIdQuery, Order>, GetByIdQueryHandler>();
 builder.Services.AddScoped<IQueryHandler<OrderDashboardQuery, OrderDashboardResult>, OrderDashboardQueryHandler>();
+builder.Services.AddScoped<IQueryHandler<CheckOrderStatusQuery, bool>, CheckOrderStatusQueryHandler>();
 
 builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("JwtSettings")
