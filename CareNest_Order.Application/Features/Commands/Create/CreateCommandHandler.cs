@@ -8,6 +8,7 @@ using CareNest_Order.Domain.Commons.Enum;
 using CareNest_Order.Application.Common.DTOs;
 using Shared.Helper;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace CareNest_Order.Application.Features.Commands.Create
 {
@@ -16,12 +17,14 @@ namespace CareNest_Order.Application.Features.Commands.Create
         private readonly IUnitOfWork _unitOfWork;
         private readonly IAPIService _apiService;
         private readonly IEmailService _emailService;
+        private readonly ILogger<CreateCommandHandler> _logger;
 
-        public CreateCommandHandler(IUnitOfWork unitOfWork, IAPIService apiService, IEmailService emailService)
+        public CreateCommandHandler(IUnitOfWork unitOfWork, IAPIService apiService, IEmailService emailService, ILogger<CreateCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _apiService = apiService;
             _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<CreateOrderResult> HandleAsync(CreateCommand command)
@@ -137,6 +140,12 @@ namespace CareNest_Order.Application.Features.Commands.Create
             {
                 try
                 {
+                    _logger.LogInformation("🔵 [SEPAY QR] Bắt đầu tạo Payment QR cho Order {OrderId}", order.Id);
+                    _logger.LogInformation("🔵 [SEPAY QR] Thông tin Shop: BankCode={BankCode}, AccountNumber={AccountNumber}, AccountName={AccountName}",
+                        shopInfo.BankCode, shopInfo.BankAccountNumber, shopInfo.BankAccountName);
+                    _logger.LogInformation("🔵 [SEPAY QR] Thông tin Payment: Amount={Amount}, Description={Description}",
+                        order.TotalAmount, $"Thanh toán đơn hàng #{order.Id}");
+
                     var paymentPayload = new
                     {
                         amount = order.TotalAmount,
@@ -149,20 +158,42 @@ namespace CareNest_Order.Application.Features.Commands.Create
                         download = false
                     };
 
+                    _logger.LogInformation("🔵 [SEPAY QR] Gọi API Sepay để tạo QR Code...");
                     var paymentResult = await _apiService.PostAsyncDirect<PaymentQrResponse>("payment", "/api/payment/create-qr", paymentPayload);
+
                     if (paymentResult.IsSuccess && paymentResult.Data != null)
                     {
                         paymentQr = paymentResult.Data.Data;
+                        _logger.LogInformation("✅ [SEPAY QR] Tạo Payment QR thành công cho Order {OrderId}", order.Id);
+                        _logger.LogInformation("✅ [SEPAY QR] QR Code URL: {QrUrl}", paymentQr?.QrCode ?? "N/A");
                     }
                     else
                     {
+                        _logger.LogWarning("⚠️ [SEPAY QR] Tạo Payment QR thất bại cho Order {OrderId}: {Message}",
+                            order.Id, paymentResult.Message);
                         Console.WriteLine($"Payment QR creation failed: {paymentResult.Message}");
                     }
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, "❌ [SEPAY QR] Lỗi khi tạo Payment QR cho Order {OrderId}: {Message}",
+                        order.Id, ex.Message);
                     Console.WriteLine($"Payment QR creation error: {ex.Message}");
                 }
+            }
+            else
+            {
+                _logger.LogInformation("ℹ️ [SEPAY QR] Bỏ qua tạo Payment QR - Thiếu thông tin Shop hoặc TotalAmount = 0");
+                if (shopInfo == null)
+                    _logger.LogInformation("ℹ️ [SEPAY QR] Lý do: ShopInfo is null");
+                else if (order.TotalAmount <= 0)
+                    _logger.LogInformation("ℹ️ [SEPAY QR] Lý do: TotalAmount = {TotalAmount}", order.TotalAmount);
+                else if (string.IsNullOrWhiteSpace(shopInfo.BankCode))
+                    _logger.LogInformation("ℹ️ [SEPAY QR] Lý do: BankCode is empty");
+                else if (string.IsNullOrWhiteSpace(shopInfo.BankAccountNumber))
+                    _logger.LogInformation("ℹ️ [SEPAY QR] Lý do: BankAccountNumber is empty");
+                else if (string.IsNullOrWhiteSpace(shopInfo.BankAccountName))
+                    _logger.LogInformation("ℹ️ [SEPAY QR] Lý do: BankAccountName is empty");
             }
 
             // Gửi email xác nhận đơn hàng (best-effort, không chặn luồng)
