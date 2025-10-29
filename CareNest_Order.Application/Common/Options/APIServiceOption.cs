@@ -8,6 +8,7 @@ namespace CareNest_Order.Application.Common.Options
         public string BaseUrlProduct { get; set; } = string.Empty;
         public string BaseUrlAuthorize { get; set; } = string.Empty;
         public string BaseUrlPay { get; set; } = string.Empty;
+        public string BaseUrlReview { get; set; } = string.Empty;
     }
 }
 

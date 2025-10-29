@@ -31,6 +31,9 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
 
         // If ShopId is set => detail mode
         public DashboardShopDetailResponse? ShopDetail { get; set; }
+
+        // When aggregate mode (no ShopId): total review count across all orders
+        public int ReviewCount { get; set; }
     }
 
     public class DashboardShopAggregateItem
@@ -66,6 +69,9 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
         public int TotalSeller { get; set; }
         public double TotalRevenue { get; set; }
         public PageResult<OrderDetailWithProduct> Details { get; set; } = default!;
+
+        // Total reviews for all orders of this shop
+        public int ReviewCount { get; set; }
     }
 
     public class OrderDetailWithProduct

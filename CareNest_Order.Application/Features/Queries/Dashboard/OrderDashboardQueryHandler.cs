@@ -102,9 +102,14 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
                 query.PageIndex
             );
 
+            // ReviewCount for all orders (aggregate mode)
+            var allOrderIds = orders.Select(o => o.Id).ToList();
+            int totalReviews = await GetReviewCountForOrderIdsAsync(allOrderIds);
+
             return new OrderDashboardResult
             {
-                Shops = page
+                Shops = page,
+                ReviewCount = totalReviews
             };
         }
 
@@ -131,6 +136,9 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
 
             string? shopName = await GetShopNameAsync(shopId);
 
+            // ReviewCount for this shop's orders
+            int reviewCount = await GetReviewCountForOrderIdsAsync(orderIds);
+
             return new OrderDashboardResult
             {
                 ShopDetail = new DashboardShopDetailResponse
@@ -143,7 +151,8 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
                     TotalOrdersCancelled = totalOrdersCancelled,
                     TotalSeller = totalSeller,
                     TotalRevenue = totalRevenue,
-                    Details = detailPage
+                    Details = detailPage,
+                    ReviewCount = reviewCount
                 }
             };
         }
@@ -288,6 +297,34 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
                 query.PageIndex
             );
         }
+
+        private async Task<int> GetReviewCountForOrderIdsAsync(IEnumerable<string> orderIds)
+        {
+            var ids = orderIds?.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList() ?? new List<string>();
+            if (ids.Count == 0)
+            {
+                return 0;
+            }
+
+            int total = 0;
+
+            // Chunk to avoid very long URLs
+            const int batchSize = 80;
+            for (int i = 0; i < ids.Count; i += batchSize)
+            {
+                var batch = ids.Skip(i).Take(batchSize).ToList();
+                var queryParams = string.Join("&", batch.Select(id => $"orderIds={id}"));
+                var endpoint = $"/api/review?pageIndex=1&pageSize=1000&sortDirection=asc&{queryParams}";
+
+                var resp = await _apiService.GetAsync<ReviewPageDto>("review", endpoint);
+                if (resp.IsSuccess && resp.Data != null)
+                {
+                    total += resp.Data.TotalItems;
+                }
+            }
+
+            return total;
+        }
     }
 
     // DTOs for external services
@@ -326,6 +363,26 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
         public DateTime? UpdatedAt { get; set; }
         public string? CreatedBy { get; set; }
         public string? UpdatedBy { get; set; }
+    }
+
+    internal class ReviewPageDto
+    {
+        public List<ReviewItemDto> Items { get; set; } = new();
+        public int TotalItems { get; set; }
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+    }
+
+    internal class ReviewItemDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string? CustomerId { get; set; }
+        public string ItemDetailId { get; set; } = string.Empty;
+        public int Rating { get; set; }
+        public string? Contents { get; set; }
+        public string? ImgUrl { get; set; }
+        public int Type { get; set; }
     }
 }
 
