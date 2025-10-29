@@ -39,6 +39,10 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
         public string? ShopName { get; set; }
         public int TotalOrders { get; set; }
         public int TotalOrderDetails { get; set; }
+        public int TotalOrdersCompleted { get; set; }
+        public int TotalOrdersCancelled { get; set; }
+        public int TotalSeller { get; set; }
+        public double TotalRevenue { get; set; }
         public int OrdersTotal { get; set; } // real total order count for this shop
         public IEnumerable<DashboardOrderSummary> Orders { get; set; } = Enumerable.Empty<DashboardOrderSummary>();
     }
@@ -57,6 +61,10 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
         public string? ShopName { get; set; }
         public int TotalOrders { get; set; }
         public int TotalOrderDetails { get; set; }
+        public int TotalOrdersCompleted { get; set; }
+        public int TotalOrdersCancelled { get; set; }
+        public int TotalSeller { get; set; }
+        public double TotalRevenue { get; set; }
         public PageResult<OrderDetailWithProduct> Details { get; set; } = default!;
     }
 

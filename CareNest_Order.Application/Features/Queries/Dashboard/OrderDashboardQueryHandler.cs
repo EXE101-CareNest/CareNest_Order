@@ -6,6 +6,7 @@ using CareNest_Order.Application.Common.DTOs;
 using CareNest_Order.Application.Features.Queries.Dashboard;
 using CareNest_Order.Application.Interfaces.UOW;
 using CareNest_Order.Domain.Entitites;
+using CareNest_Order.Domain.Commons.Enum;
 using System.Linq;
 
 namespace CareNest_Order.Application.Features.Queries.Dashboard
@@ -69,6 +70,13 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
                 // TotalOrderDetails across all orders of this shop
                 int totalOrderDetails = await CountOrderDetailsForShopAsync(shopId);
 
+                // Compute order status based metrics
+                IQueryable<Order> shopOrders = _unitOfWork.GetRepository<Order>().Entities.Where(o => o.ShopId == shopId);
+                int totalOrdersCompleted = shopOrders.Count(o => o.Status == OrderStatus.Cancel);
+                int totalOrdersCancelled = shopOrders.Count(o => o.Status == OrderStatus.Pending);
+                int totalSeller = totalOrdersCompleted; // as per requirement
+                double totalRevenue = shopOrders.Where(o => o.Status == OrderStatus.Cancel).Sum(o => o.TotalAmount);
+
                 // Orders summaries limited and sorted
                 var orderSummaries = await GetOrderSummariesAsync(shopId, query);
 
@@ -78,6 +86,10 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
                     ShopName = shopName,
                     TotalOrders = g.TotalOrders,
                     TotalOrderDetails = totalOrderDetails,
+                    TotalOrdersCompleted = totalOrdersCompleted,
+                    TotalOrdersCancelled = totalOrdersCancelled,
+                    TotalSeller = totalSeller,
+                    TotalRevenue = totalRevenue,
                     OrdersTotal = g.TotalOrders,
                     Orders = orderSummaries
                 });
@@ -103,6 +115,12 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
             IQueryable<Order> orders = _unitOfWork.GetRepository<Order>().Entities.Where(o => o.ShopId == shopId);
             int totalOrders = orders.Count();
 
+            // Status based metrics for this shop
+            int totalOrdersCompleted = orders.Count(o => o.Status == OrderStatus.Cancel);
+            int totalOrdersCancelled = orders.Count(o => o.Status == OrderStatus.Pending);
+            int totalSeller = totalOrdersCompleted; // as per requirement
+            double totalRevenue = orders.Where(o => o.Status == OrderStatus.Cancel).Sum(o => o.TotalAmount);
+
             // Gather orderIds
             var orderIds = orders.Select(o => o.Id).ToList();
 
@@ -121,6 +139,10 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
                     ShopName = shopName,
                     TotalOrders = totalOrders,
                     TotalOrderDetails = totalOrderDetails,
+                    TotalOrdersCompleted = totalOrdersCompleted,
+                    TotalOrdersCancelled = totalOrdersCancelled,
+                    TotalSeller = totalSeller,
+                    TotalRevenue = totalRevenue,
                     Details = detailPage
                 }
             };
