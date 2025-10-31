@@ -43,7 +43,8 @@ DatabaseSettings dbSettings = new DatabaseSettings
     Password = config["DB_PASSWORD"] ?? config["DatabaseSettings:Password"],
     Database = config["DB_NAME"] ?? config["DatabaseSettings:Database"]
 };
-dbSettings.Display();
+// In ra cấu hình DB (tránh null ref trong môi trường không có console)
+try { dbSettings.Display(); } catch { }
 string baseConnectionString = dbSettings.GetConnectionString();
 // Bổ sung tham số pooling/timeouts phù hợp môi trường cloud
 string connectionString = baseConnectionString + ";Pooling=true;Maximum Pool Size=5;Minimum Pool Size=0;Timeout=15;";
@@ -69,7 +70,10 @@ builder.Services.AddSwaggerGen(c =>
 {
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    c.IncludeXmlComments(xmlPath);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
 
     //ADD JWT BEARER SECURITY DEFINITION
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -124,8 +128,7 @@ builder.Services.Configure<APIServiceOption>(
 );
 builder.Services.AddHttpClient<IAPIService, APIService>();
 
-// Email service
-builder.Services.AddHttpClient<IEmailService, EmailService>();
+// Email service (bỏ đăng ký nếu không sử dụng/không có implementation)
 
 
 //Đăng ký cho FE
