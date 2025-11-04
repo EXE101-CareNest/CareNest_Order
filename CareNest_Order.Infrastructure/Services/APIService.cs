@@ -221,20 +221,29 @@ namespace CareNest_Order.Infrastructure.Services
             var baseUrl = GetBaseUrl(serviceType);
             if (string.IsNullOrWhiteSpace(baseUrl))
             {
-                throw new ArgumentException($"Base URL for service '{serviceType}' is not configured.");
+                throw new ArgumentException($"Base URL for service '{serviceType}' is not configured. Please set environment variable 'APIServiceBaseUrl{serviceType}' or configure it in appsettings.json");
             }
 
-            // Normalize slashes
+            // Normalize base URL: trim whitespace and trailing slashes
+            baseUrl = baseUrl.Trim();
+            
+            // Auto-add https:// if no protocol is specified
+            if (!baseUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) && 
+                !baseUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                baseUrl = "https://" + baseUrl;
+            }
+
             var normalizedBase = baseUrl.TrimEnd('/');
             var normalizedEndpoint = string.IsNullOrWhiteSpace(endpoint) ? string.Empty : (endpoint.StartsWith("/") ? endpoint : "/" + endpoint);
             var fullUrl = normalizedBase + normalizedEndpoint;
 
-            if (!Uri.TryCreate(fullUrl, UriKind.Absolute, out _))
+            if (!Uri.TryCreate(fullUrl, UriKind.Absolute, out var validatedUri))
             {
-                throw new ArgumentException($"Composed request URL is invalid for service '{serviceType}': '{fullUrl}'");
+                throw new ArgumentException($"Composed request URL is invalid for service '{serviceType}': '{fullUrl}'. Base URL was: '{GetBaseUrl(serviceType)}'");
             }
 
-            return fullUrl;
+            return validatedUri.ToString();
         }
     }
 }
