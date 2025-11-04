@@ -22,7 +22,7 @@ namespace CareNest_Order.Infrastructure.Services
         {
             try
             {
-                var fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
+                string fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
 
                 var response = await _httpClient.GetAsync(fullUrl);
                 var content = await response.Content.ReadAsStringAsync();
@@ -50,7 +50,7 @@ namespace CareNest_Order.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return ResponseResult<T>.Failure($"API call failed ({serviceType}) to '" + (endpoint ?? string.Empty) + $"' -> '{ex.Message}'");
+                return ResponseResult<T>.Failure($"API call failed ({serviceType}) URL='" + (tryFullUrl(serviceType, endpoint)) + $"' -> '{ex.Message}'");
             }
         }
 
@@ -58,7 +58,7 @@ namespace CareNest_Order.Infrastructure.Services
         {
             try
             {
-                var fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
+                string fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -89,7 +89,7 @@ namespace CareNest_Order.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return ResponseResult<T>.Failure($"API call failed ({serviceType}) to '" + (endpoint ?? string.Empty) + $"' -> '{ex.Message}'");
+                return ResponseResult<T>.Failure($"API call failed ({serviceType}) URL='" + (tryFullUrl(serviceType, endpoint)) + $"' -> '{ex.Message}'");
             }
         }
 
@@ -97,7 +97,7 @@ namespace CareNest_Order.Infrastructure.Services
         {
             try
             {
-                var fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
+                string fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -128,7 +128,7 @@ namespace CareNest_Order.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return ResponseResult<T>.Failure($"API call failed ({serviceType}) to '" + (endpoint ?? string.Empty) + $"' -> '{ex.Message}'");
+                return ResponseResult<T>.Failure($"API call failed ({serviceType}) URL='" + (tryFullUrl(serviceType, endpoint)) + $"' -> '{ex.Message}'");
             }
         }
 
@@ -136,7 +136,7 @@ namespace CareNest_Order.Infrastructure.Services
         {
             try
             {
-                var fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
+                string fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
 
                 var response = await _httpClient.DeleteAsync(fullUrl);
                 var content = await response.Content.ReadAsStringAsync();
@@ -164,7 +164,7 @@ namespace CareNest_Order.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return ResponseResult<T>.Failure($"API call failed ({serviceType}) to '" + (endpoint ?? string.Empty) + $"' -> '{ex.Message}'");
+                return ResponseResult<T>.Failure($"API call failed ({serviceType}) URL='" + (tryFullUrl(serviceType, endpoint)) + $"' -> '{ex.Message}'");
             }
         }
 
@@ -172,7 +172,7 @@ namespace CareNest_Order.Infrastructure.Services
         {
             try
             {
-                var fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
+                string fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -197,8 +197,13 @@ namespace CareNest_Order.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return ResponseResult<T>.Failure($"API call failed ({serviceType}) to '" + (endpoint ?? string.Empty) + $"' -> '{ex.Message}'");
+                return ResponseResult<T>.Failure($"API call failed ({serviceType}) URL='" + (tryFullUrl(serviceType, endpoint)) + $"' -> '{ex.Message}'");
             }
+        }
+
+        private string tryFullUrl(string serviceType, string endpoint)
+        {
+            try { return BuildAbsoluteUrl(serviceType, endpoint); } catch { return $"base='{GetBaseUrl(serviceType)}', endpoint='{endpoint}'"; }
         }
 
         private string GetBaseUrl(string serviceType)
