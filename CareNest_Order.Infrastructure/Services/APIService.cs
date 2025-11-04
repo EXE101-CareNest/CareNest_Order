@@ -50,7 +50,7 @@ namespace CareNest_Order.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return ResponseResult<T>.Failure($"API call failed: {ex.Message}");
+                return ResponseResult<T>.Failure($"API call failed ({serviceType}) to '" + (endpoint ?? string.Empty) + $"' -> '{ex.Message}'");
             }
         }
 
@@ -89,7 +89,7 @@ namespace CareNest_Order.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return ResponseResult<T>.Failure($"API call failed: {ex.Message}");
+                return ResponseResult<T>.Failure($"API call failed ({serviceType}) to '" + (endpoint ?? string.Empty) + $"' -> '{ex.Message}'");
             }
         }
 
@@ -128,7 +128,7 @@ namespace CareNest_Order.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return ResponseResult<T>.Failure($"API call failed: {ex.Message}");
+                return ResponseResult<T>.Failure($"API call failed ({serviceType}) to '" + (endpoint ?? string.Empty) + $"' -> '{ex.Message}'");
             }
         }
 
@@ -164,7 +164,7 @@ namespace CareNest_Order.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return ResponseResult<T>.Failure($"API call failed: {ex.Message}");
+                return ResponseResult<T>.Failure($"API call failed ({serviceType}) to '" + (endpoint ?? string.Empty) + $"' -> '{ex.Message}'");
             }
         }
 
@@ -197,7 +197,7 @@ namespace CareNest_Order.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return ResponseResult<T>.Failure($"API call failed: {ex.Message}");
+                return ResponseResult<T>.Failure($"API call failed ({serviceType}) to '" + (endpoint ?? string.Empty) + $"' -> '{ex.Message}'");
             }
         }
 
