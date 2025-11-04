@@ -24,6 +24,7 @@ using CareNest_Order.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Net.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,7 +48,7 @@ DatabaseSettings dbSettings = new DatabaseSettings
 try { dbSettings.Display(); } catch { }
 string baseConnectionString = dbSettings.GetConnectionString();
 // Bổ sung tham số pooling/timeouts phù hợp môi trường cloud
-string connectionString = baseConnectionString + ";Pooling=true;Maximum Pool Size=5;Minimum Pool Size=0;Timeout=15;";
+string connectionString = baseConnectionString + ";Pooling=true;Maximum Pool Size=1;Minimum Pool Size=0;Timeout=15;";
 
 
 // Đăng ký DbContext với PostgreSQL
@@ -126,10 +127,20 @@ builder.Services.Configure<JwtSettings>(
 builder.Services.Configure<APIServiceOption>(
     builder.Configuration.GetSection("APIService")
 );
-builder.Services.AddHttpClient<IAPIService, APIService>();
+builder.Services.AddHttpClient<IAPIService, APIService>()
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+    {
+        MaxConnectionsPerServer = 1,
+        PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+    });
 
 // Email service
-builder.Services.AddHttpClient<IEmailService, EmailService>();
+builder.Services.AddHttpClient<IEmailService, EmailService>()
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+    {
+        MaxConnectionsPerServer = 1,
+        PooledConnectionLifetime = TimeSpan.FromMinutes(2)
+    });
 
 // Override APIServiceOption từ các biến môi trường dạng phẳng (APIServiceBaseUrlXxx)
 builder.Services.PostConfigure<APIServiceOption>(opt =>
