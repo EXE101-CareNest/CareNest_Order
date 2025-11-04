@@ -32,21 +32,39 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
-// Lấy DatabaseSettings ưu tiên từ biến môi trường, fallback sang configuration
+// Lấy DatabaseSettings ưu tiên từ DATABASE_URL (Koyeb), fallback sang biến môi trường phẳng/ip-port và configuration
 var config = builder.Configuration;
-DatabaseSettings dbSettings = new DatabaseSettings
+string? databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+string baseConnectionString;
+if (!string.IsNullOrWhiteSpace(databaseUrl))
 {
-    Ip = config["DB_HOST"] ?? config["DatabaseSettings:Ip"],
-    Port = int.TryParse(config["DB_PORT"], out var port)
-        ? port
-        : (config.GetSection("DatabaseSettings").GetValue<int?>("Port") ?? 5432),
-    User = config["DB_USER"] ?? config["DatabaseSettings:User"],
-    Password = config["DB_PASSWORD"] ?? config["DatabaseSettings:Password"],
-    Database = config["DB_NAME"] ?? config["DatabaseSettings:Database"]
-};
-// In ra cấu hình DB (tránh null ref trong môi trường không có console)
-try { dbSettings.Display(); } catch { }
-string baseConnectionString = dbSettings.GetConnectionString();
+    // Parse postgres://username:password@host:port/dbname
+    var uri = new Uri(databaseUrl);
+    var userInfoParts = (uri.UserInfo ?? string.Empty).Split(':', 2);
+    var user = userInfoParts.Length > 0 ? Uri.UnescapeDataString(userInfoParts[0]) : string.Empty;
+    var password = userInfoParts.Length > 1 ? Uri.UnescapeDataString(userInfoParts[1]) : string.Empty;
+    var host = uri.Host;
+    var port = uri.Port > 0 ? uri.Port : 5432;
+    var database = uri.AbsolutePath.TrimStart('/');
+
+    baseConnectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password}";
+}
+else
+{
+    DatabaseSettings dbSettings = new DatabaseSettings
+    {
+        Ip = config["DB_HOST"] ?? config["DatabaseSettings:Ip"],
+        Port = int.TryParse(config["DB_PORT"], out var port)
+            ? port
+            : (config.GetSection("DatabaseSettings").GetValue<int?>("Port") ?? 5432),
+        User = config["DB_USER"] ?? config["DatabaseSettings:User"],
+        Password = config["DB_PASSWORD"] ?? config["DatabaseSettings:Password"],
+        Database = config["DB_NAME"] ?? config["DatabaseSettings:Database"]
+    };
+    // In ra cấu hình DB (tránh null ref trong môi trường không có console)
+    try { dbSettings.Display(); } catch { }
+    baseConnectionString = dbSettings.GetConnectionString();
+}
 // Bổ sung tham số pooling/timeouts phù hợp môi trường cloud
 string connectionString = baseConnectionString + ";Pooling=true;Maximum Pool Size=1;Minimum Pool Size=0;Timeout=15;";
 
