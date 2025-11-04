@@ -131,6 +131,20 @@ builder.Services.AddHttpClient<IAPIService, APIService>();
 // Email service
 builder.Services.AddHttpClient<IEmailService, EmailService>();
 
+// Override APIServiceOption từ các biến môi trường dạng phẳng (APIServiceBaseUrlXxx)
+builder.Services.PostConfigure<APIServiceOption>(opt =>
+{
+    string? GetEnv(string key) => Environment.GetEnvironmentVariable(key);
+
+    opt.BaseUrlOrderDetail = GetEnv("APIServiceBaseUrlOrderDetail") ?? opt.BaseUrlOrderDetail;
+    opt.BaseUrlShop = GetEnv("APIServiceBaseUrlShop") ?? opt.BaseUrlShop;
+    opt.BaseUrlAddress = GetEnv("APIServiceBaseUrlAddress") ?? opt.BaseUrlAddress;
+    opt.BaseUrlProduct = GetEnv("APIServiceBaseUrlProduct") ?? opt.BaseUrlProduct;
+    opt.BaseUrlAuthorize = GetEnv("APIServiceBaseUrlAuthorize") ?? opt.BaseUrlAuthorize;
+    opt.BaseUrlPay = GetEnv("APIServiceBaseUrlPay") ?? opt.BaseUrlPay;
+    opt.BaseUrlReview = GetEnv("APIServiceBaseUrlReview") ?? opt.BaseUrlReview;
+});
+
 //Đăng ký cho FE
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
