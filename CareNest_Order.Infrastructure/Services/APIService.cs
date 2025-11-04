@@ -22,8 +22,7 @@ namespace CareNest_Order.Infrastructure.Services
         {
             try
             {
-                var baseUrl = GetBaseUrl(serviceType);
-                var fullUrl = $"{baseUrl}{endpoint}";
+                var fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
 
                 var response = await _httpClient.GetAsync(fullUrl);
                 var content = await response.Content.ReadAsStringAsync();
@@ -59,8 +58,7 @@ namespace CareNest_Order.Infrastructure.Services
         {
             try
             {
-                var baseUrl = GetBaseUrl(serviceType);
-                var fullUrl = $"{baseUrl}{endpoint}";
+                var fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -99,8 +97,7 @@ namespace CareNest_Order.Infrastructure.Services
         {
             try
             {
-                var baseUrl = GetBaseUrl(serviceType);
-                var fullUrl = $"{baseUrl}{endpoint}";
+                var fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -139,8 +136,7 @@ namespace CareNest_Order.Infrastructure.Services
         {
             try
             {
-                var baseUrl = GetBaseUrl(serviceType);
-                var fullUrl = $"{baseUrl}{endpoint}";
+                var fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
 
                 var response = await _httpClient.DeleteAsync(fullUrl);
                 var content = await response.Content.ReadAsStringAsync();
@@ -176,8 +172,7 @@ namespace CareNest_Order.Infrastructure.Services
         {
             try
             {
-                var baseUrl = GetBaseUrl(serviceType);
-                var fullUrl = $"{baseUrl}{endpoint}";
+                var fullUrl = BuildAbsoluteUrl(serviceType, endpoint);
 
                 var json = JsonSerializer.Serialize(data);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -219,6 +214,27 @@ namespace CareNest_Order.Infrastructure.Services
                 "review" => _option.BaseUrlReview,
                 _ => throw new ArgumentException($"Service type '{serviceType}' không hợp lệ!", nameof(serviceType))
             };
+        }
+
+        private string BuildAbsoluteUrl(string serviceType, string endpoint)
+        {
+            var baseUrl = GetBaseUrl(serviceType);
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                throw new ArgumentException($"Base URL for service '{serviceType}' is not configured.");
+            }
+
+            // Normalize slashes
+            var normalizedBase = baseUrl.TrimEnd('/');
+            var normalizedEndpoint = string.IsNullOrWhiteSpace(endpoint) ? string.Empty : (endpoint.StartsWith("/") ? endpoint : "/" + endpoint);
+            var fullUrl = normalizedBase + normalizedEndpoint;
+
+            if (!Uri.TryCreate(fullUrl, UriKind.Absolute, out _))
+            {
+                throw new ArgumentException($"Composed request URL is invalid for service '{serviceType}': '{fullUrl}'");
+            }
+
+            return fullUrl;
         }
     }
 }
