@@ -20,8 +20,25 @@ namespace CareNest_Order.Application.Features.Queries.GetAllPaging
 
             var orderByFunc = GetOrderByFunc(query.SortColumn, query.SortDirection);
 
+            // Build optional filters
+            System.Linq.Expressions.Expression<Func<Order, bool>>? predicate = null;
+            bool hasShop = !string.IsNullOrWhiteSpace(query.ShopId);
+            bool hasCustomer = !string.IsNullOrWhiteSpace(query.CustomerId);
+            if (hasShop && hasCustomer)
+            {
+                predicate = o => o.ShopId == query.ShopId && o.CustomerId == query.CustomerId;
+            }
+            else if (hasShop)
+            {
+                predicate = o => o.ShopId == query.ShopId;
+            }
+            else if (hasCustomer)
+            {
+                predicate = o => o.CustomerId == query.CustomerId;
+            }
+
             IEnumerable<OrderResponse> a = await _unitOfWork.GetRepository<Order>().FindAsync(
-                predicate: null,
+                predicate: predicate,
                 orderBy: orderByFunc,
                 selector: selector,
                 pageSize: query.PageSize,

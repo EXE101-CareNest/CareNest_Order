@@ -11,6 +11,7 @@ using CareNest_Order.Domain.Entitites;
 using CareNest_Order.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using CareNest_Order.Application.Features.Queries.Dashboard;
+using CareNest_Order.Application.Features.Commands.UpdateStatus;
 
 
 namespace CareNest_Order.API.Controllers
@@ -26,6 +27,28 @@ namespace CareNest_Order.API.Controllers
             _dispatcher = dispatcher;
         }
 
+        public class UpdateOrderStatusRequest
+        {
+            public string OrderId { get; set; } = string.Empty;
+            public CareNest_Order.Domain.Commons.Enum.OrderStatus Status { get; set; }
+        }
+        /// <summary>
+        /// Cập nhật trạng thái đơn hàng theo orderId
+        /// </summary>
+        /// <param name="request">orderId và status</param>
+        /// <returns>Thông tin đơn hàng đã cập nhật</returns>
+        [HttpPut("status")]
+        public async Task<IActionResult> UpdateStatus([FromBody] UpdateOrderStatusRequest request)
+        {
+            var command = new UpdateOrderStatusCommand
+            {
+                OrderId = request.OrderId,
+                Status = request.Status
+            };
+            var result = await _dispatcher.DispatchAsync<UpdateOrderStatusCommand, Order>(command);
+            return this.OkResponse(result, "Order status updated successfully");
+        }
+
         /// <summary>
         /// Hiển thị toàn bộ danh sách đơn hàng hiện có trong hệ thống với phân trang và sắp xếp
         /// </summary>
@@ -39,14 +62,18 @@ namespace CareNest_Order.API.Controllers
             [FromQuery] int pageIndex = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] string? sortColumn = null,
-            [FromQuery] string? sortDirection = "asc")
+            [FromQuery] string? sortDirection = "asc",
+            [FromQuery] string? shopId = null,
+            [FromQuery] string? customerId = null)
         {
             var query = new GetAllPagingQuery()
             {
                 Index = pageIndex,
                 PageSize = pageSize,
                 SortColumn = sortColumn,
-                SortDirection = sortDirection
+                SortDirection = sortDirection,
+                ShopId = shopId,
+                CustomerId = customerId
             };
             var result = await _dispatcher.DispatchQueryAsync<GetAllPagingQuery, PageResult<OrderResponse>>(query);
             return this.OkResponse(result, MessageConstant.SuccessGet);

@@ -25,6 +25,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Net.Http;
+using CareNest_Order.Application.Features.Commands.UpdateStatus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -130,6 +131,7 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<ICommandHandler<CreateCommand, CreateOrderResult>, CreateCommandHandler>();
 builder.Services.AddScoped<ICommandHandler<UpdateCommand, Order>, UpdateCommandHandler>();
 builder.Services.AddScoped<ICommandHandler<UpdateOrderStatusToCancelCommand, Order>, UpdateOrderStatusToCancelCommandHandler>();
+builder.Services.AddScoped<ICommandHandler<UpdateOrderStatusCommand, Order>, UpdateOrderStatusCommandHandler>();
 builder.Services.AddScoped<ICommandHandler<DeleteCommand>, DeleteCommandHandler>();
 //query
 builder.Services.AddScoped<IQueryHandler<GetAllPagingQuery, PageResult<OrderResponse>>, GetAllPagingQueryHandler>();
