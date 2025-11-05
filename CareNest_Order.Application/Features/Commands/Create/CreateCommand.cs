@@ -73,5 +73,6 @@ namespace CareNest_Order.Application.Features.Commands.Create
         public Order Order { get; set; } = new();
         public PaymentQrDto? PaymentQr { get; set; }
         public List<OrderItemDto> Items { get; set; } = new();
+        public DateTime? CreatedDate { get; set; }
     }
 }

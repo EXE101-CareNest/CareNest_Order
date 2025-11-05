@@ -239,7 +239,8 @@ namespace CareNest_Order.Application.Features.Commands.Create
             {
                 Order = order,
                 PaymentQr = paymentQr,
-                Items = command.Items ?? new List<OrderItemDto>()
+                Items = command.Items ?? new List<OrderItemDto>(),
+                CreatedDate = order.CreatedAt
             };
         }
     }

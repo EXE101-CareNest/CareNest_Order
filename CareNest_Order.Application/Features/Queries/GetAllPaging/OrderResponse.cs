@@ -48,5 +48,9 @@ namespace CareNest_Order.Application.Features.Queries.GetAllPaging
         /// check đã thanh toán chưa
         /// </summary>
         public bool IsPaid { get; set; }
+        /// <summary>
+        /// ngày tạo đơn
+        /// </summary>
+        public DateTime? CreatedAt { get; set; }
     }
 }
