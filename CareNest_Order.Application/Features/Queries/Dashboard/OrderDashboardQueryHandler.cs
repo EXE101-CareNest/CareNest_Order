@@ -72,10 +72,10 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
 
                 // Compute order status based metrics
                 IQueryable<Order> shopOrders = _unitOfWork.GetRepository<Order>().Entities.Where(o => o.ShopId == shopId);
-                int totalOrdersCompleted = shopOrders.Count(o => o.Status == OrderStatus.Cancel);
-                int totalOrdersCancelled = shopOrders.Count(o => o.Status == OrderStatus.Pending);
+                int totalOrdersCompleted = shopOrders.Count(o => o.Status == OrderStatus.Shipped);
+                int totalOrdersCancelled = shopOrders.Count(o => o.Status == OrderStatus.Cancel);
                 int totalSeller = totalOrdersCompleted; // as per requirement
-                double totalRevenue = shopOrders.Where(o => o.Status == OrderStatus.Cancel).Sum(o => o.TotalAmount);
+                double totalRevenue = shopOrders.Where(o => o.Status == OrderStatus.Shipped).Sum(o => o.TotalAmount);
 
                 // Orders summaries limited and sorted
                 var orderSummaries = await GetOrderSummariesAsync(shopId, query);
@@ -121,10 +121,10 @@ namespace CareNest_Order.Application.Features.Queries.Dashboard
             int totalOrders = orders.Count();
 
             // Status based metrics for this shop
-            int totalOrdersCompleted = orders.Count(o => o.Status == OrderStatus.Cancel);
-            int totalOrdersCancelled = orders.Count(o => o.Status == OrderStatus.Pending);
+            int totalOrdersCompleted = orders.Count(o => o.Status == OrderStatus.Shipped);
+            int totalOrdersCancelled = orders.Count(o => o.Status == OrderStatus.Cancel);
             int totalSeller = totalOrdersCompleted; // as per requirement
-            double totalRevenue = orders.Where(o => o.Status == OrderStatus.Cancel).Sum(o => o.TotalAmount);
+            double totalRevenue = orders.Where(o => o.Status == OrderStatus.Shipped).Sum(o => o.TotalAmount);
 
             // Gather orderIds
             var orderIds = orders.Select(o => o.Id).ToList();
