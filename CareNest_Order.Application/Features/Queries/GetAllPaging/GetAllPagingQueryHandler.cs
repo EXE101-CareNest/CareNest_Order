@@ -55,7 +55,8 @@ namespace CareNest_Order.Application.Features.Queries.GetAllPaging
             return sortColumn?.ToLower() switch
             {
                 "updateat" => q => ascending ? q.OrderBy(a => a.UpdatedAt) : q.OrderByDescending(a => a.UpdatedAt),
-                _ => q => q.OrderBy(a => a.CreatedAt) // fallback nếu không có sortColumn
+                // Mặc định: mới nhất lên đầu
+                _ => q => q.OrderByDescending(a => a.CreatedAt)
             };
         }
     }
