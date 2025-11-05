@@ -51,6 +51,6 @@ namespace CareNest_Order.Application.Features.Queries.GetAllPaging
         /// <summary>
         /// ngày tạo đơn
         /// </summary>
-        public DateTime? CreatedAt { get; set; }
+        public DateTimeOffset? CreatedAt { get; set; }
     }
 }
